@@ -14,9 +14,14 @@ exports.handleRequest = function (req, res) {
   };
 
   var webSiteName = path.basename(req.url);
+  var webSiteArchivePath = archive.paths.archivedSites + '/' + webSiteName;
+
   if(!webSiteName) {
     helpers.serveAssets(res, archive.paths.siteAssets + '/index.html', callback); 
-  } else if (archive.isUrlArchived(webSiteName)) {
-    helpers.serveAssets(res, archive.paths.archivedSites + '/' + webSiteName, callback);
+  } else if (archive.isUrlArchived(webSiteArchivePath)) {
+    console.log('file exists');
+    helpers.serveAssets(res, webSiteArchivePath, callback);
+  } else {
+    helpers.sendResponse(res, 404, 'File not found');
   }
 };
