@@ -5,11 +5,18 @@ var helpers = require('./http-helpers');
 
 exports.handleRequest = function (req, res) {
 
-  helpers.serveAssets(res, archive.paths.siteAssets + '/index.html', function(err, data) {
+  var callback = function(err, data) {
     if (err) {
       helpers.sendResponse(res, 404, 'File not found');
     } else {
       helpers.sendResponse(res, 200, data);
     }
-  });
+  };
+
+  var webSiteName = path.basename(req.url);
+  if(!webSiteName) {
+    helpers.serveAssets(res, archive.paths.siteAssets + '/index.html', callback); 
+  } else if (archive.isUrlArchived(webSiteName)) {
+    helpers.serveAssets(res, archive.paths.archivedSites + '/' + webSiteName, callback);
+  }
 };
