@@ -11,7 +11,10 @@ var actions = {
     var webSiteArchivePath = archive.paths.archivedSites + '/' + webSiteName;
 
     if(!webSiteName) {
-      helpers.serveAssets(res, archive.paths.siteAssets + '/index.html'); 
+      helpers.serveAssets(res, archive.paths.siteAssets + '/index.html');
+      archive.readListOfUrls(function(urlArray) {
+        archive.downloadUrls(urlArray);
+      });
     } else {
       archive.isUrlArchived(webSiteName, function(bool) {
         if (bool) {
