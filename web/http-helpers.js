@@ -27,3 +27,14 @@ exports.sendResponse = function(res, statusCode, data) {
   res.writeHead(statusCode, headers);
   res.end(data);
 }
+
+exports.makeActionHandler = function(actionMap) {
+  return function(req, res) {
+    var action = actionMap[req.method];
+    if (action) {
+      action(req, res);
+    } else {
+      exports.sendRespone(res, 405, 'Method not allowed')
+    }
+  }
+}
