@@ -1,7 +1,6 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
-var helpers = require('../web/http-helpers');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -26,30 +25,52 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function() {
+exports.readListOfUrls = function(callback) {
+  fs.readFile(exports.paths.list, 'utf-8', function(err, data) {
+    callback(data.split('\n'));
+  });
 };
 
-exports.isUrlInList = function() {
+exports.isUrlInList = function(target, callback) {
+  exports.readListOfUrls(function(urlsArray) {
+    callback(urlsArray.indexOf(target) > -1);
+  });
 };
 
-exports.addUrlToList = function(url, callback) {
-  fs.appendFile(exports.paths.list, url + '\n', function(err) {
-    if (err) {
-      helpers.sendResponse(res, 500, 'url not added to list');
+exports.addUrlToList = function(url, callbackIfSuccess, callbackIfError, callbackIfAlreadyInFile) {
+  exports.isUrlInList(url, function(bool) {
+    if (!bool) {
+      fs.appendFile(exports.paths.list, url + '\n', function(err) {
+        if (err) {
+          if (callbackIfError) {
+            callbackIfError(err);
+          }
+        } else {
+          callbackIfSuccess();
+        }
+      })
     } else {
-      callback();
+      callbackIfAlreadyInFile();
     }
   })
 };
 
-exports.isUrlArchived = function(urlArchivePath) {
-  try {
-    return fs.statSync(urlArchivePath).isFile();
-  }
-  catch (e) {
-    return false;
-  }
+exports.isUrlArchived = function(url, callback) {
+  fs.stat(exports.paths.archivedSites + '/' + url, function(err, stats) {
+    callback(!err);
+  })
 };
 
-exports.downloadUrls = function() {
+exports.downloadUrls = function(urlsArray) {
+  _.each(urlsArray, function(url) {
+    fs.open(exports.paths.archivedSites + '/' + url, 'w', function(err, fd) {
+      if (!err) {
+        fs.write(fd, "empty", function(err) {
+          if (!err) {
+            fs.close(fd, null);
+          }
+        });
+      }
+    })
+  })
 };

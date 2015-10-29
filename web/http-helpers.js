@@ -12,7 +12,13 @@ exports.headers = headers = {
 };
 
 exports.serveAssets = function(res, asset, callback) {
-  fs.readFile(asset, callback);
+  fs.readFile(asset, function(err, data) {
+    if (err) {
+      exports.sendResponse(res, 404, 'File not found');
+    } else {
+      exports.sendResponse(res, 200, data);
+    }
+  });
 };
 
 exports.sendResponse = function(res, statusCode, data) {

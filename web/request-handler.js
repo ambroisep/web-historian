@@ -7,24 +7,19 @@ var qs = require('querystring');
 
 var actions = {
   'GET': function(req, res) {
-    var callback = function(err, data) {
-      if (err) {
-        helpers.sendResponse(res, 404, 'File not found');
-      } else {
-        helpers.sendResponse(res, 200, data);
-      }
-    };
-
     var webSiteName = path.basename(req.url);
     var webSiteArchivePath = archive.paths.archivedSites + '/' + webSiteName;
 
     if(!webSiteName) {
-      helpers.serveAssets(res, archive.paths.siteAssets + '/index.html', callback); 
-    } else if (archive.isUrlArchived(webSiteArchivePath)) {
-      console.log('file exists');
-      helpers.serveAssets(res, webSiteArchivePath, callback);
+      helpers.serveAssets(res, archive.paths.siteAssets + '/index.html'); 
     } else {
-      helpers.sendResponse(res, 404, 'File not found');
+      archive.isUrlArchived(webSiteName, function(bool) {
+        if (bool) {
+          helpers.serveAssets(res, webSiteArchivePath);
+        } else {
+          helpers.sendResponse(res, 404, 'File not found');
+        }
+      });
     }
   },
 
@@ -33,7 +28,11 @@ var actions = {
       var dataObj = qs.parse(data);
       archive.addUrlToList(dataObj['url'], function() {
         helpers.sendResponse(res, 302, 'Created');
-      });
+      }, function() {
+        helpers.sendResponse(res, 500, 'url not added to list');
+      }, function() {
+        helpers.serveAssets(res, archive.paths.siteAssets + '/loading.html')
+      })
     })
   },
 
