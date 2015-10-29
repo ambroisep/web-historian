@@ -1,6 +1,7 @@
 var path = require('path');
 var archive = require('../helpers/archive-helpers');
 var helpers = require('./http-helpers');
+var qs = require('querystring');
 // require more modules/folders here!
 
 
@@ -28,14 +29,16 @@ var actions = {
   },
 
   'POST': function(req, res) {
-    helpers.collectData(req, function(message) {
-      message.objectId = ++objectIdCounter;
-      messages.push(message);
-      helpers.sendResponse(res, {objectId: message.objectId}, 201);
-    });
+    helpers.receiveData(req, function(data) {
+      var dataObj = qs.parse(data);
+      archive.addUrlToList(dataObj['url'], function() {
+        helpers.sendResponse(res, 302, 'Created');
+      });
+    })
   },
+
   'OPTIONS': function(req, res) {
-    helpers.sendResponse(res, null);
+    helpers.sendResponse(res, 200, null);
   }
 };
 

@@ -1,6 +1,7 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var helpers = require('../web/http-helpers');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -31,7 +32,14 @@ exports.readListOfUrls = function() {
 exports.isUrlInList = function() {
 };
 
-exports.addUrlToList = function() {
+exports.addUrlToList = function(url, callback) {
+  fs.appendFile(exports.paths.list, url + '\n', function(err) {
+    if (err) {
+      helpers.sendResponse(res, 500, 'url not added to list');
+    } else {
+      callback();
+    }
+  })
 };
 
 exports.isUrlArchived = function(urlArchivePath) {

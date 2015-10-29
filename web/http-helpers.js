@@ -12,21 +12,23 @@ exports.headers = headers = {
 };
 
 exports.serveAssets = function(res, asset, callback) {
-  // Write some code here that helps serve up your static files!
-  // (Static files are things like html (yours or archived from others...),
-  // css, or anything that doesn't change often.)
   fs.readFile(asset, callback);
 };
 
-  // Write some code here that helps serve up your static files!
-  // (Static files are things like html (yours or archived from others...),
-  // css, or anything that doesn't change often.)
-
-// As you progress, keep thinking about what helper functions you can put here!
 exports.sendResponse = function(res, statusCode, data) {
   res.writeHead(statusCode, headers);
   res.end(data);
-}
+};
+
+exports.receiveData = function(req, callback) {
+  var data = '';
+  req.on('data', function(chunk) {
+    data += chunk;
+  });
+  req.on('end', function() {
+    callback(data);
+  });
+};
 
 exports.makeActionHandler = function(actionMap) {
   return function(req, res) {
@@ -34,7 +36,7 @@ exports.makeActionHandler = function(actionMap) {
     if (action) {
       action(req, res);
     } else {
-      exports.sendRespone(res, 405, 'Method not allowed')
+      exports.sendRespone(res, 405, 'Method not allowed');
     }
   }
-}
+};
