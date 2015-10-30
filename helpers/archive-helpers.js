@@ -62,6 +62,30 @@ exports.isUrlArchived = function(url, callback) {
   })
 };
 
+exports.removeUrlFromList = function(url, callback) {
+  exports.readListOfUrls(function(urlArrays) {
+    var strToOverwrite = urlArrays.reduce(function(str, urlInFile) {
+      if (urlInFile !== url) {
+        str += urlInFile + '\n';
+      }
+      return str;
+    }, '');
+    fs.open(exports.paths.list, 'w', function(err, fd) {
+      if (!err) {
+        fs.write(fd, strToOverwrite, function(err) {
+          if (!err) {
+            fs.close(fd, function() {
+              if (callback) {
+                callback();
+              }
+            });
+          }
+        });
+      }
+    });
+  });
+};
+
 exports.downloadUrls = function(urlsArray) {
   _.each(urlsArray, function(url) {
     httpRequest.get(url, function(err, res) {
@@ -70,7 +94,9 @@ exports.downloadUrls = function(urlsArray) {
           if (!err) {
             fs.write(fd, res.buffer.toString(), function(err) {
               if (!err) {
-                fs.close(fd, null);
+                fs.close(fd, function() {
+                  exports.removeUrlFromList(url, null)
+                });
               }
             });
           }
