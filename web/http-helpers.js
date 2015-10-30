@@ -10,17 +10,20 @@ exports.headers = headers = {
   'Content-Type': "text/html"
 };
 
-exports.serveAssets = function(res, asset, callback) {
+exports.serveAssets = function(res, asset, contentType) {
+  contentType = contentType || "text/html";
   fs.readFile(asset, function(err, data) {
     if (err) {
-      exports.sendResponse(res, 404, 'File not found');
+      exports.sendResponse(res, 404, 'File not found', contentType);
     } else {
-      exports.sendResponse(res, 200, data);
+      exports.sendResponse(res, 200, data, contentType);
     }
   });
 };
 
-exports.sendResponse = function(res, statusCode, data) {
+exports.sendResponse = function(res, statusCode, data, contentType) {
+  contentType = contentType || "text/html";
+  headers['Content-Type'] = contentType;
   res.writeHead(statusCode, headers);
   res.end(data);
 };
@@ -39,6 +42,7 @@ exports.makeActionHandler = function(actionMap) {
   return function(req, res) {
     var action = actionMap[req.method];
     if (action) {
+      console.log('Receiveing a ' + req.method + ' call on url: ' + req.url);
       action(req, res);
     } else {
       exports.sendRespone(res, 405, 'Method not allowed');

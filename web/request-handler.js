@@ -2,19 +2,16 @@ var path = require('path');
 var archive = require('../helpers/archive-helpers');
 var helpers = require('./http-helpers');
 var qs = require('querystring');
-// require more modules/folders here!
-
 
 var actions = {
+
   'GET': function(req, res) {
     var webSiteName = path.basename(req.url);
     var webSiteArchivePath = archive.paths.archivedSites + '/' + webSiteName;
-
     if(!webSiteName) {
       helpers.serveAssets(res, archive.paths.siteAssets + '/index.html');
-      archive.readListOfUrls(function(urlArray) {
-        archive.downloadUrls(urlArray);
-      });
+    } else if (webSiteName === 'styles.css') {
+      helpers.serveAssets(res, archive.paths.siteAssets + '/' + webSiteName, 'text/css');
     } else {
       archive.isUrlArchived(webSiteName, function(bool) {
         if (bool) {
@@ -42,6 +39,7 @@ var actions = {
   'OPTIONS': function(req, res) {
     helpers.sendResponse(res, 200, null);
   }
+  
 };
 
 exports.handleRequest = helpers.makeActionHandler(actions);
