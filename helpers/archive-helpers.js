@@ -13,7 +13,8 @@ var httpRequest = require('http-request')
 exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
-  list: path.join(__dirname, '../archives/sites.txt')
+  list: path.join(__dirname, '../archives/sites.txt'),
+  logs: path.join(__dirname, '../workers/log.txt')
 };
 
 // Used for stubbing paths for tests, do not modify
@@ -86,7 +87,7 @@ exports.removeUrlFromList = function(url, callback) {
   });
 };
 
-exports.downloadUrls = function(urlsArray) {
+exports.downloadUrls = function(urlsArray, callback) {
   _.each(urlsArray, function(url) {
     httpRequest.get(url, function(err, res) {
       if (!err) {
@@ -95,7 +96,11 @@ exports.downloadUrls = function(urlsArray) {
             fs.write(fd, res.buffer.toString(), function(err) {
               if (!err) {
                 fs.close(fd, function() {
-                  exports.removeUrlFromList(url, null)
+                  exports.removeUrlFromList(url, function() {
+                    if (callback) {
+                      callback(url);
+                    }
+                  })
                 });
               }
             });
